@@ -4,22 +4,25 @@ name: Trigger auto deployment for ai-demos
 on:
   # Automatically trigger it when detected changes in repo
   push:
-    branches: 
+    branches:
       [ main ]
     paths:
-    - '**'
+    - 'webapp/**'
     - '.github/workflows/ai-demos-AutoDeployTrigger-5d84daca-3ded-4a58-9f0f-91caed38675a.yml'
 
-  # Allow manual trigger 
-  workflow_dispatch:      
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  id-token: write # This is required for requesting the OIDC JWT Token
+  contents: read # Required when GH token is used to authenticate with private repo
+
+env:
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
-
     steps:
       - name: Checkout to the branch
         uses: actions/checkout@v4
@@ -31,16 +34,24 @@ jobs:
           tenant-id: ${{ secrets.AIDEMOS_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AIDEMOS_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push container image to registry
-        uses: azure/container-apps-deploy-action@v2
-        with:
-          appSourcePath: ${{ github.workspace }}/webapp
-          dockerfilePath: Dockerfile
-          registryUrl: ${{ secrets.AIDEMOS_REGISTRY_URL }}
-          registryUsername: ${{ secrets.AIDEMOS_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.AIDEMOS_REGISTRY_PASSWORD }}
-          containerAppName: ai-demos
-          resourceGroup: aarch-dev-rg
-          imageToBuild: default/ai-demos:${{ github.sha }}
+      - name: Build and push image with ACR
+        env:
+          AIDEMOS_REGISTRY_URL: ${{ secrets.AIDEMOS_REGISTRY_URL }}
+        run: |
+          ACR_NAME="${AIDEMOS_REGISTRY_URL%%.*}"
+          az acr build -r "$ACR_NAME" \
+            -t ai-demos:${{ env.IMAGE_TAG }} \
+            -t ai-demos:latest \
+            -f Dockerfile webapp
 
+      - name: Update container app revision
+        env:
+          AIDEMOS_REGISTRY_URL: ${{ secrets.AIDEMOS_REGISTRY_URL }}
+        run: |
+          ACR_NAME="${AIDEMOS_REGISTRY_URL%%.*}"
+          az containerapp update \
+            -g aarch-dev-rg \
+            -n ai-demos \
+            --image "$ACR_NAME.azurecr.io/ai-demos:${{ env.IMAGE_TAG }}" \
+            --revision-suffix "sha-${IMAGE_TAG:0:6}-r${{ github.run_number }}"
 
