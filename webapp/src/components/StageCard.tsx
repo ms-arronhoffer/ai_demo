@@ -42,14 +42,20 @@ export default function StageCard({ stage }: StageCardProps) {
   return (
     <Link
       href={`/stages/${stage.slug}`}
-      className="group flex flex-col gap-4 p-6 bg-white rounded-xl border border-cream-dark shadow-sm hover:border-navy/30 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+      className="group relative flex h-full flex-col gap-4 p-6 bg-white rounded-xl border border-cream-dark shadow-sm hover:border-navy/25 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
     >
-      {/* Number + icon */}
+      {/* Gold accent bar reveals on hover */}
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      />
+
+      {/* Number + icon medallion */}
       <div className="flex items-start justify-between">
         <span className="text-xs font-mono text-gold font-semibold tracking-widest uppercase">
           Stage {String(stage.number).padStart(2, "0")}
         </span>
-        <span className="text-navy/30 group-hover:text-navy/60 transition-colors">
+        <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-navy/5 text-navy/40 ring-1 ring-navy/5 transition-all duration-300 group-hover:bg-navy group-hover:text-gold-light group-hover:ring-navy/20">
           {STAGE_ICONS[stage.slug]}
         </span>
       </div>
@@ -67,10 +73,15 @@ export default function StageCard({ stage }: StageCardProps) {
       {/* Time saved badge */}
       <div className="mt-auto pt-3 border-t border-cream-dark flex items-center justify-between">
         <span className="text-xs text-slate-mid">Time saved</span>
-        <span className="text-xs font-semibold text-navy bg-cream px-2 py-0.5 rounded">
+        <span className="text-xs font-semibold text-navy bg-cream px-2 py-0.5 rounded ring-1 ring-cream-dark">
           {stage.timeSaved}
         </span>
       </div>
+
+      {/* Read-more affordance */}
+      <span className="text-xs font-medium text-navy/50 opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+        Explore stage →
+      </span>
     </Link>
   );
 }

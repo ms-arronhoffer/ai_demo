@@ -37,10 +37,15 @@ export default async function StagePage({ params }: Props) {
 
       <main className="flex-1">
         {/* ── Stage hero ────────────────────────────────────────────────── */}
-        <section className="bg-navy text-white py-14 px-6">
-          <div className="max-w-5xl mx-auto">
+        <section className="relative bg-navy text-white py-16 px-6 overflow-hidden">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 bg-dot-grid opacity-60" />
+            <div className="absolute -top-16 right-0 h-[320px] w-[520px] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(176,133,64,0.2),_transparent_65%)] blur-2xl animate-glow" />
+            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+          </div>
+          <div className="relative max-w-5xl mx-auto">
             {/* Breadcrumb */}
-            <nav aria-label="breadcrumb" className="mb-6">
+            <nav aria-label="breadcrumb" className="mb-6 animate-fade">
               <ol className="flex items-center gap-2 text-xs text-white/50">
                 <li>
                   <Link href="/" className="hover:text-white transition-colors">
@@ -54,32 +59,32 @@ export default async function StagePage({ params }: Props) {
 
             {/* Stage badge + heading */}
             <div className="flex items-start gap-4">
-              <div className="shrink-0 w-12 h-12 rounded-full bg-gold/10 border border-gold/40 flex items-center justify-center">
-                <span className="font-mono text-gold font-bold">
+              <div className="animate-rise shrink-0 w-14 h-14 rounded-xl bg-gold/10 border border-gold/40 flex items-center justify-center shadow-lg shadow-black/20">
+                <span className="font-mono text-gold font-bold text-lg">
                   {String(stage.number).padStart(2, "0")}
                 </span>
               </div>
               <div>
-                <p className="text-gold text-xs font-mono tracking-widest uppercase mb-1">
+                <p className="animate-rise delay-1 text-gold text-xs font-mono tracking-widest uppercase mb-1">
                   Stage {stage.number} of {stages.length}
                 </p>
-                <h1 className="font-serif text-3xl sm:text-4xl font-semibold leading-tight">
+                <h1 className="animate-rise delay-1 font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold leading-tight text-balance">
                   {stage.name}
                 </h1>
-                <p className="mt-2 text-white/70 text-lg max-w-2xl">
+                <p className="animate-rise delay-2 mt-2 text-white/70 text-lg max-w-2xl">
                   {stage.tagline}
                 </p>
               </div>
             </div>
 
             {/* Progress bar */}
-            <div className="mt-8 flex items-center gap-2">
+            <div className="animate-rise delay-3 mt-8 flex items-center gap-2">
               {stages.map((s) => (
                 <Link key={s.slug} href={`/stages/${s.slug}`} aria-label={s.name}>
                   <span
-                    className={`block h-1 w-10 rounded-full transition-colors ${
+                    className={`block h-1.5 w-10 rounded-full transition-all hover:scale-y-150 ${
                       s.slug === slug
-                        ? "bg-gold"
+                        ? "bg-gold shadow-[0_0_10px_rgba(176,133,64,0.6)]"
                         : s.number < stage.number
                         ? "bg-white/40"
                         : "bg-white/15"
@@ -115,7 +120,7 @@ export default async function StagePage({ params }: Props) {
 
         {/* ── Challenge ─────────────────────────────────────────────────── */}
         <section className="max-w-5xl mx-auto px-6 py-10">
-          <div className="flex gap-3 p-5 rounded-lg bg-navy/5 border border-navy/10">
+          <div className="reveal flex gap-3 p-5 rounded-xl bg-gradient-to-br from-navy/[0.06] to-navy/[0.02] border border-navy/10 shadow-sm">
             <span className="text-navy/60 text-xl shrink-0 mt-0.5">🎯</span>
             <div>
               <p className="text-xs font-semibold text-navy/50 uppercase tracking-widest mb-1">
@@ -128,28 +133,35 @@ export default async function StagePage({ params }: Props) {
 
         {/* ── AI Interaction ────────────────────────────────────────────── */}
         <section className="max-w-5xl mx-auto px-6 pb-16">
-          <header className="mb-6">
+          <header className="reveal mb-6">
             <p className="text-xs font-mono text-gold uppercase tracking-widest mb-2">
               AI in Action
             </p>
-            <h2 className="font-serif text-2xl font-semibold text-navy">
+            <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-navy">
               Prompt → Response
             </h2>
           </header>
 
-          <AIInteraction
-            prompt={stage.humanPrompt}
-            response={stage.aiResponse}
-          />
+          <div className="reveal">
+            <AIInteraction
+              prompt={stage.humanPrompt}
+              response={stage.aiResponse}
+            />
+          </div>
         </section>
 
         {/* ── Key takeaway ──────────────────────────────────────────────── */}
-        <section className="bg-cream-dark/30 border-t border-cream-dark py-12 px-6">
-          <div className="max-w-3xl mx-auto text-center">
+        <section className="relative bg-navy text-white py-16 px-6 overflow-hidden">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 bg-dot-grid opacity-50" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[240px] w-[520px] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(176,133,64,0.16),_transparent_65%)] blur-2xl" />
+          </div>
+          <div className="relative max-w-3xl mx-auto text-center">
             <p className="text-xs font-mono text-gold uppercase tracking-widest mb-3">
               Key Insight
             </p>
-            <p className="font-serif text-xl text-navy leading-relaxed">
+            <div aria-hidden className="rule-gold mx-auto mb-6 w-16" />
+            <p className="font-serif text-xl sm:text-2xl leading-relaxed">
               AI doesn&rsquo;t replace the {stage.name.toLowerCase()} phase —
               it compresses the time-to-quality by acting as an expert
               collaborator at your side throughout.

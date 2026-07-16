@@ -20,7 +20,7 @@ export default function AIInteraction({ prompt, response }: AIInteractionProps) 
           </span>
           <CopyButton text={prompt} label="Copy prompt" />
         </div>
-        <div className="flex-1 bg-white border border-cream-dark rounded-xl p-5 relative shadow-sm transition-shadow hover:shadow-md">
+        <div className="flex-1 bg-white border border-cream-dark rounded-xl p-5 relative shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 border-t-2 border-t-navy/30">
           <pre className="text-sm text-charcoal/90 whitespace-pre-wrap font-sans leading-relaxed">
             {prompt}
           </pre>
@@ -40,7 +40,7 @@ export default function AIInteraction({ prompt, response }: AIInteractionProps) 
             AI Response
           </span>
         </div>
-        <div className="flex-1 bg-white border border-cream-dark rounded-xl overflow-hidden shadow-sm transition-shadow hover:shadow-md">
+        <div className="flex-1 bg-white border border-cream-dark rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 border-t-2 border-t-gold/50">
           <div className="p-5 space-y-4 ai-response">
             {response.map((block, i) => (
               <ContentRenderer key={i} block={block} />

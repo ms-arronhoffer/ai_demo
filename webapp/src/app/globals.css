@@ -16,6 +16,9 @@
   --color-cream-dark: #ede9e0;
   --color-charcoal: #1a1a1a;
   --color-slate-mid: #64748b;
+
+  /* Motion tokens */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
@@ -23,11 +26,166 @@ body {
   color: #1a1a1a;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* Consistent vertical rhythm for AI response content */
 .ai-response > * + * {
   margin-top: 0.75rem;
 }
 
-html {
-  scroll-behavior: smooth;
+/* ──────────────────────────────────────────────────────────────────────────
+   Decorative textures & backgrounds
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Fine dot grid, used as a subtle overlay on navy surfaces */
+.bg-dot-grid {
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.07) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+/* Faint navy grid for light surfaces */
+.bg-blueprint {
+  background-image: linear-gradient(
+      to right,
+      rgba(12, 35, 64, 0.045) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(12, 35, 64, 0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Thin gold hairline used as an editorial divider */
+.rule-gold {
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-gold),
+    transparent
+  );
+}
+
+/* Text set with a soft gold gradient — used sparingly as a rare accent */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #d4a855 0%, #b08540 55%, #e0c07a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Entrance animations (play once on load)
+   ────────────────────────────────────────────────────────────────────────── */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-140%);
+  }
+  to {
+    transform: translateX(140%);
+  }
+}
+
+@keyframes glow-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate3d(3%, 4%, 0) scale(1.08);
+    opacity: 1;
+  }
+}
+
+.animate-rise {
+  opacity: 0;
+  animation: rise-in 0.7s var(--ease-out-soft) forwards;
+}
+
+.animate-fade {
+  opacity: 0;
+  animation: fade-in 0.9s ease forwards;
+}
+
+/* Staggered delays for sequential reveals */
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.16s; }
+.delay-3 { animation-delay: 0.24s; }
+.delay-4 { animation-delay: 0.32s; }
+.delay-5 { animation-delay: 0.4s; }
+
+/* Slow drifting glow for hero ambience */
+.animate-glow {
+  animation: glow-drift 14s ease-in-out infinite;
+}
+
+/* Gold shimmer that sweeps across a masked element */
+.animate-sweep {
+  animation: sweep 6.5s ease-in-out infinite;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Scroll-driven reveal (progressive enhancement)
+   Elements animate in as they enter the viewport. Falls back to fully
+   visible where scroll timelines are unsupported.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.reveal {
+  opacity: 1;
+}
+
+@supports (animation-timeline: view()) {
+  .reveal {
+    opacity: 0;
+    animation: rise-in 0.8s var(--ease-out-soft) both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 30%;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Accessibility: honour reduced-motion preferences
+   ────────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-rise,
+  .animate-fade,
+  .reveal {
+    opacity: 1 !important;
+  }
 }
