@@ -10,30 +10,14 @@
 import type { Demo, Stage } from "./types";
 import { aiSdlcDemo } from "./ai-sdlc";
 import { deploymentPatternsDemo } from "./deployment-patterns";
+import { aiObservabilityDemo } from "./ai-observability";
 
 export type { ContentBlock, Stage, Demo, DemoStatus } from "./types";
-
-/**
- * Template for a future track. Copy this shape into its own module, fill in
- * `stages`, flip `status` to "available", and register it in `demos` below.
- */
-const comingSoonDemo: Demo = {
-  slug: "ai-observability",
-  badge: "Track 03",
-  title: "AI Observability",
-  tagline: "Monitor, evaluate, and trace AI systems in production.",
-  description:
-    "A future track covering evaluation harnesses, prompt/response tracing, token and cost telemetry, and content-safety monitoring for AI-powered features.",
-  audience: "SRE and ML engineers running AI features in production.",
-  outcome: "Planned track",
-  status: "coming-soon",
-  stages: [],
-};
 
 export const demos: Demo[] = [
   aiSdlcDemo,
   deploymentPatternsDemo,
-  comingSoonDemo,
+  aiObservabilityDemo,
 ];
 
 /** Demos that are ready to explore (have stages). */

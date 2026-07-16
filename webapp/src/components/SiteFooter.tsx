@@ -16,7 +16,7 @@ export default function SiteFooter() {
             Browse Demos
           </Link>
           <a
-            href="https://github.com/ms-arronhoffer/ai_sdlc_demo"
+            href="https://github.com/ms-arronhoffer/ai_demo"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-white transition-colors"
