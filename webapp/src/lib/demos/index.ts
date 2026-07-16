@@ -12,7 +12,7 @@ import { aiSdlcDemo } from "./ai-sdlc";
 import { deploymentPatternsDemo } from "./deployment-patterns";
 import { aiObservabilityDemo } from "./ai-observability";
 
-export type { ContentBlock, Stage, Demo, DemoStatus } from "./types";
+export type { ContentBlock, Stage, Demo, DemoStatus, WidgetKey } from "./types";
 
 export const demos: Demo[] = [
   aiSdlcDemo,
