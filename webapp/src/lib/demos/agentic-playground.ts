@@ -33,7 +33,7 @@ and the tokens, latency, and cost of each step.`,
       },
       {
         type: "paragraph",
-        text: "Rather than answering in one shot, the agent plans, calls a tool to fetch live data, reads the result, and only then writes a grounded answer. Click any step below to inspect its raw payload.",
+        text: "Rather than answering in one shot, the agent plans, calls a tool to fetch live data, reads the result, and only then writes a grounded answer. Press Run agent to watch the loop play out step by step, then click any step to inspect its raw payload.",
       },
       {
         type: "widget",

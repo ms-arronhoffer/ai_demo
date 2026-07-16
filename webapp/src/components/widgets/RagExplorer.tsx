@@ -1,17 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
+import { useTypewriter } from "./useWidgetMotion";
 
 /**
  * RAG Explorer.
  *
- * A deterministic illustration of a retrieval-augmented generation pipeline
- * over a small TaskFlow knowledge base. Ask one of the sample questions, adjust
- * top-k, and watch which chunks are retrieved and how the grounded answer is
- * assembled with citations. Retrieval here is a transparent keyword-overlap
- * score (not a real embedding model) so the demo is self-contained and always
- * available; the live, Azure-backed experience lives in the Live Agent
- * Playground.
+ * An interactive illustration of a retrieval-augmented generation pipeline over
+ * a small TaskFlow knowledge base. Type any question (or pick a sample), tune
+ * top-k, and watch which chunks are retrieved — with animated relevance bars
+ * and the matched query terms highlighted in-line — before the grounded answer
+ * types itself out with citations.
+ *
+ * Retrieval here is a transparent keyword-overlap score (not a real embedding
+ * model) so the demo is self-contained and always available; the live,
+ * Azure-backed experience lives in the Live Agent Playground.
  */
 
 interface Chunk {
@@ -78,7 +81,8 @@ const QUESTIONS: Question[] = [
 
 const STOP = new Set([
   "the", "a", "an", "our", "is", "are", "who", "what", "why", "on", "our",
-  "this", "week", "might", "policy", "of", "to", "and", "for", "in",
+  "this", "week", "might", "policy", "of", "to", "and", "for", "in", "how",
+  "do", "does", "we", "i", "my", "when", "where", "which", "can", "should",
 ]);
 
 function tokenize(s: string): string[] {
@@ -97,37 +101,108 @@ function score(query: string, chunk: Chunk): number {
   return hits;
 }
 
+/** Renders chunk text with query terms highlighted. */
+function Highlighted({ text, terms }: { text: string; terms: Set<string> }) {
+  if (terms.size === 0) return <>{text}</>;
+  const parts = text.split(/(\b)/);
+  return (
+    <>
+      {parts.map((part, i) =>
+        terms.has(part.toLowerCase()) ? (
+          <mark
+            key={i}
+            className="rounded bg-gold/25 px-0.5 text-charcoal"
+          >
+            {part}
+          </mark>
+        ) : (
+          <Fragment key={i}>{part}</Fragment>
+        ),
+      )}
+    </>
+  );
+}
+
+/** Builds a grounded answer for an arbitrary (non-preset) query. */
+function extractiveAnswer(retrieved: Chunk[]): string {
+  if (retrieved.length === 0) return "";
+  const top = retrieved[0];
+  const firstSentence = top.text.split(/(?<=[.!?])\s/)[0];
+  const cite = top.source.split(" · ")[0];
+  return `${firstSentence} [${cite}]`;
+}
+
 export default function RagExplorer() {
-  const [qIndex, setQIndex] = useState(0);
+  const [query, setQuery] = useState(QUESTIONS[0].q);
+  const [submitted, setSubmitted] = useState(QUESTIONS[0].q);
   const [topK, setTopK] = useState(2);
 
-  const question = QUESTIONS[qIndex];
+  const preset = QUESTIONS.find((qq) => qq.q === submitted);
 
   const ranked = useMemo(() => {
-    return KNOWLEDGE_BASE.map((c) => ({ chunk: c, s: score(question.q, c) }))
+    return KNOWLEDGE_BASE.map((c) => ({ chunk: c, s: score(submitted, c) }))
       .sort((a, b) => b.s - a.s);
-  }, [question]);
+  }, [submitted]);
 
+  const maxScore = ranked[0]?.s ?? 0;
   const retrieved = ranked.slice(0, topK).filter((r) => r.s > 0);
-  const citations = retrieved.map((r) => r.chunk.source.split(" · ")[0]);
+  const retrievedChunks = retrieved.map((r) => r.chunk);
+  const citations = retrievedChunks.map((c) => c.source.split(" · ")[0]);
+  const queryTerms = useMemo(() => new Set(tokenize(submitted)), [submitted]);
+
   const answer =
-    retrieved.length > 0
-      ? question.answer(citations.length ? citations : ["knowledge base"])
-      : "No relevant context was retrieved — the model would either refuse or answer from general knowledge (ungrounded).";
+    retrieved.length === 0
+      ? "No relevant context was retrieved — the model would either refuse or answer from general knowledge (ungrounded)."
+      : preset
+        ? preset.answer(citations.length ? citations : ["knowledge base"])
+        : extractiveAnswer(retrievedChunks);
+
+  // Re-type the answer whenever a new query is submitted or top-k changes.
+  const typed = useTypewriter(answer, true, 10);
+
+  function submit(next: string) {
+    const q = next.trim();
+    if (!q) return;
+    setSubmitted(q);
+  }
 
   return (
     <div className="rounded-xl border border-cream-dark bg-white shadow-sm overflow-hidden">
       {/* Controls */}
       <div className="border-b border-cream-dark bg-cream-dark/40 p-4">
-        <div className="flex flex-wrap gap-1.5">
-          {QUESTIONS.map((qq, i) => (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit(query);
+          }}
+          className="flex flex-col gap-2 sm:flex-row"
+        >
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ask the TaskFlow knowledge base…"
+            className="flex-1 rounded-lg border border-cream-dark bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-navy/40"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white ring-1 ring-navy/10 transition-colors hover:bg-navy-mid"
+          >
+            Retrieve
+          </button>
+        </form>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {QUESTIONS.map((qq) => (
             <button
               key={qq.q}
               type="button"
-              onClick={() => setQIndex(i)}
-              aria-pressed={i === qIndex}
+              onClick={() => {
+                setQuery(qq.q);
+                submit(qq.q);
+              }}
+              aria-pressed={qq.q === submitted}
               className={`rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors ${
-                i === qIndex
+                qq.q === submitted
                   ? "bg-navy text-white ring-navy/20"
                   : "bg-white text-slate-mid ring-cream-dark hover:text-navy"
               }`}
@@ -159,10 +234,11 @@ export default function RagExplorer() {
           <ol className="space-y-2">
             {ranked.map((r, i) => {
               const isRetrieved = i < topK && r.s > 0;
+              const pct = maxScore > 0 ? Math.max(6, (r.s / maxScore) * 100) : 0;
               return (
                 <li
                   key={r.chunk.id}
-                  className={`rounded-lg border p-3 text-xs transition-all ${
+                  className={`rounded-lg border p-3 text-xs transition-all duration-500 ${
                     isRetrieved
                       ? "border-gold/50 bg-gold/5 shadow-sm"
                       : "border-cream-dark bg-white opacity-60"
@@ -182,8 +258,17 @@ export default function RagExplorer() {
                       score {r.s}
                     </span>
                   </div>
+                  {/* Relevance bar */}
+                  <div className="mb-2 h-1 w-full overflow-hidden rounded-full bg-cream-dark">
+                    <div
+                      className={`h-full rounded-full transition-[width] duration-700 ease-out ${
+                        isRetrieved ? "bg-gold" : "bg-slate-mid/40"
+                      }`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
                   <p className="leading-relaxed text-charcoal/80">
-                    {r.chunk.text}
+                    <Highlighted text={r.chunk.text} terms={queryTerms} />
                   </p>
                 </li>
               );
@@ -205,13 +290,18 @@ export default function RagExplorer() {
               ? retrieved.map((r) => r.chunk.source.split(" · ")[0]).join(", ")
               : "(none)"}
             {"\n"}
-            <span className="text-white/40">user:</span> {question.q}
+            <span className="text-white/40">user:</span> {submitted}
           </div>
           <div className="rounded-lg border border-gold/30 bg-white/5 p-3">
             <p className="mb-1 text-[10px] font-mono uppercase tracking-widest text-gold">
               Answer
             </p>
-            <p className="text-sm leading-relaxed text-white/90">{answer}</p>
+            <p className="text-sm leading-relaxed text-white/90">
+              {typed.shown}
+              {!typed.done && (
+                <span className="ml-0.5 inline-block h-4 w-1.5 -translate-y-px animate-pulse bg-gold align-middle" />
+              )}
+            </p>
           </div>
         </div>
       </div>

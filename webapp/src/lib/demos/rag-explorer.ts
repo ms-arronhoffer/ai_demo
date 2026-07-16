@@ -55,7 +55,7 @@ which chunks get pulled for a given question, and how top-k changes it.`,
       },
       {
         type: "paragraph",
-        text: "Pick a question and drag top-k. Highlighted chunks are the ones retrieved and placed in the prompt; watch the grounded answer and its citations change with them.",
+        text: "Type your own question (or pick a sample) and drag top-k. Highlighted chunks are the ones retrieved and placed in the prompt; watch the grounded answer and its citations change with them.",
       },
       {
         type: "widget",
