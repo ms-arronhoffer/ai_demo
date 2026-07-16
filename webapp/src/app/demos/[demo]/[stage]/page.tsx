@@ -4,32 +4,41 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import AIInteraction from "@/components/AIInteraction";
-import { stages, getStage, getAdjacentStages } from "@/lib/stages";
+import {
+  demos,
+  getStage,
+  getAdjacentStages,
+  stagePath,
+} from "@/lib/demos";
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ demo: string; stage: string }>;
 }
 
-export async function generateStaticParams() {
-  return stages.map((s) => ({ slug: s.slug }));
+export function generateStaticParams() {
+  return demos.flatMap((demo) =>
+    demo.stages.map((stage) => ({ demo: demo.slug, stage: stage.slug })),
+  );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const stage = getStage(slug);
-  if (!stage) return {};
+  const { demo: demoSlug, stage: stageSlug } = await params;
+  const found = getStage(demoSlug, stageSlug);
+  if (!found) return {};
+  const { demo, stage } = found;
   return {
-    title: `Stage ${stage.number}: ${stage.name} | AI-Powered SDLC`,
+    title: `Stage ${stage.number}: ${stage.name} | ${demo.title}`,
     description: stage.summary,
   };
 }
 
 export default async function StagePage({ params }: Props) {
-  const { slug } = await params;
-  const stage = getStage(slug);
-  if (!stage) notFound();
+  const { demo: demoSlug, stage: stageSlug } = await params;
+  const found = getStage(demoSlug, stageSlug);
+  if (!found) notFound();
 
-  const { prev, next } = getAdjacentStages(slug);
+  const { demo, stage } = found;
+  const { prev, next } = getAdjacentStages(demoSlug, stageSlug);
 
   return (
     <>
@@ -49,7 +58,16 @@ export default async function StagePage({ params }: Props) {
               <ol className="flex items-center gap-2 text-xs text-white/50">
                 <li>
                   <Link href="/" className="hover:text-white transition-colors">
-                    Overview
+                    Demos
+                  </Link>
+                </li>
+                <li aria-hidden>→</li>
+                <li>
+                  <Link
+                    href={stagePath(demo.slug, demo.stages[0].slug)}
+                    className="hover:text-white transition-colors"
+                  >
+                    {demo.title}
                   </Link>
                 </li>
                 <li aria-hidden>→</li>
@@ -66,7 +84,7 @@ export default async function StagePage({ params }: Props) {
               </div>
               <div>
                 <p className="animate-rise delay-1 text-gold text-xs font-mono tracking-widest uppercase mb-1">
-                  Stage {stage.number} of {stages.length}
+                  {demo.title} · Stage {stage.number} of {demo.stages.length}
                 </p>
                 <h1 className="animate-rise delay-1 font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold leading-tight text-balance">
                   {stage.name}
@@ -79,11 +97,15 @@ export default async function StagePage({ params }: Props) {
 
             {/* Progress bar */}
             <div className="animate-rise delay-3 mt-8 flex items-center gap-2">
-              {stages.map((s) => (
-                <Link key={s.slug} href={`/stages/${s.slug}`} aria-label={s.name}>
+              {demo.stages.map((s) => (
+                <Link
+                  key={s.slug}
+                  href={stagePath(demo.slug, s.slug)}
+                  aria-label={s.name}
+                >
                   <span
                     className={`block h-1.5 w-10 rounded-full transition-all hover:scale-y-150 ${
-                      s.slug === slug
+                      s.slug === stageSlug
                         ? "bg-gold shadow-[0_0_10px_rgba(176,133,64,0.6)]"
                         : s.number < stage.number
                         ? "bg-white/40"
@@ -162,7 +184,7 @@ export default async function StagePage({ params }: Props) {
             </p>
             <div aria-hidden className="rule-gold mx-auto mb-6 w-16" />
             <p className="font-serif text-xl sm:text-2xl leading-relaxed">
-              AI doesn&rsquo;t replace the {stage.name.toLowerCase()} phase —
+              AI doesn&rsquo;t replace the {stage.name.toLowerCase()} work —
               it compresses the time-to-quality by acting as an expert
               collaborator at your side throughout.
             </p>
@@ -176,7 +198,7 @@ export default async function StagePage({ params }: Props) {
         >
           {prev ? (
             <Link
-              href={`/stages/${prev.slug}`}
+              href={stagePath(demo.slug, prev.slug)}
               className="flex items-center gap-3 group p-4 rounded-lg border border-cream-dark bg-white hover:border-navy/30 hover:shadow-sm transition-all"
             >
               <span className="text-navy/40 group-hover:text-navy transition-colors text-lg">
@@ -199,14 +221,14 @@ export default async function StagePage({ params }: Props) {
               </span>
               <div>
                 <p className="text-xs text-slate-mid">Back to</p>
-                <p className="font-medium text-navy">Overview</p>
+                <p className="font-medium text-navy">All demos</p>
               </div>
             </Link>
           )}
 
           {next ? (
             <Link
-              href={`/stages/${next.slug}`}
+              href={stagePath(demo.slug, next.slug)}
               className="flex items-center gap-3 group p-4 rounded-lg border border-cream-dark bg-white hover:border-navy/30 hover:shadow-sm transition-all text-right ml-auto"
             >
               <div>
@@ -226,7 +248,7 @@ export default async function StagePage({ params }: Props) {
             >
               <div>
                 <p className="text-xs text-slate-mid">You&rsquo;ve finished!</p>
-                <p className="font-medium text-navy">Back to Overview</p>
+                <p className="font-medium text-navy">Back to all demos</p>
               </div>
               <span className="text-navy/40 group-hover:text-navy transition-colors text-lg">
                 ↑

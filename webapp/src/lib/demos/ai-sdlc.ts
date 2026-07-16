@@ -5,29 +5,9 @@
  * of building "TaskFlow" — a simple task management web app.
  */
 
-export type ContentBlock =
-  | { type: "paragraph"; text: string }
-  | { type: "heading"; level: 2 | 3; text: string }
-  | { type: "code"; language: string; code: string }
-  | { type: "list"; items: string[] }
-  | { type: "checklist"; items: Array<{ checked: boolean; text: string }> }
-  | { type: "callout"; variant: "info" | "success" | "warning"; text: string }
-  | { type: "table"; headers: string[]; rows: string[][] };
+import type { Demo, Stage } from "./types";
 
-export interface Stage {
-  slug: string;
-  number: number;
-  name: string;
-  tagline: string;
-  summary: string;
-  challenge: string;
-  impact: string;
-  timeSaved: string;
-  humanPrompt: string;
-  aiResponse: ContentBlock[];
-}
-
-export const stages: Stage[] = [
+const stages: Stage[] = [
   // ─── 1. PLAN ────────────────────────────────────────────────────────────────
   {
     slug: "plan",
@@ -790,17 +770,16 @@ monitors:
   },
 ];
 
-export function getStage(slug: string): Stage | undefined {
-  return stages.find((s) => s.slug === slug);
-}
+export const aiSdlcDemo: Demo = {
+  slug: "ai-sdlc",
+  badge: "Track 01",
+  title: "AI-Powered SDLC",
+  tagline: "See how AI accelerates every stage of the Software Development Life Cycle.",
+  description:
+    "Follow the journey of building TaskFlow — a real task management app — and watch AI compress each phase of the Software Development Life Cycle, from drafting requirements to diagnosing production incidents.",
+  audience: "Engineers, product managers, and students new to AI-assisted delivery.",
+  outcome: "~26 hours saved end-to-end",
+  status: "available",
+  stages,
+};
 
-export function getAdjacentStages(slug: string): {
-  prev: Stage | null;
-  next: Stage | null;
-} {
-  const idx = stages.findIndex((s) => s.slug === slug);
-  return {
-    prev: idx > 0 ? stages[idx - 1] : null,
-    next: idx < stages.length - 1 ? stages[idx + 1] : null,
-  };
-}

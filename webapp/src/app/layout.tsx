@@ -5,9 +5,9 @@ import "@fontsource-variable/source-serif-4";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI-Powered SDLC | A Student Demo",
+  title: "AI Demos | Build & Ship Software with AI",
   description:
-    "An interactive demonstration of how AI accelerates every stage of the Software Development Life Cycle — from requirements through production operations.",
+    "An interactive catalog of demos showing how AI accelerates software delivery — from the AI-powered SDLC to deploying apps and AI resources with Infrastructure as Code.",
 };
 
 export default function RootLayout({

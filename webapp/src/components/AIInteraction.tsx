@@ -1,4 +1,4 @@
-import type { ContentBlock } from "@/lib/stages";
+import type { ContentBlock } from "@/lib/demos";
 import CopyButton from "@/components/CopyButton";
 
 interface AIInteractionProps {
