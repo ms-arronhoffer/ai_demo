@@ -1,16 +1,25 @@
 /**
  * Azure-backed agent runtime for the Live Agent Playground.
  *
- * All interactive LLM calls are served by Azure OpenAI. The model, endpoint,
- * and credentials come entirely from environment variables (see .env.example)
- * so no secrets live in the codebase. This module also hosts a small,
- * in-memory TaskFlow dataset and a `query_tasks` tool the agent can call — the
- * "hands" that turn a chat model into an agent.
+ * All interactive LLM calls are served by Azure OpenAI. The model and endpoint
+ * come from environment variables (see .env.example) and requests authenticate
+ * with Microsoft Entra ID rather than an API key: a bearer token is acquired
+ * via `DefaultAzureCredential`, so no Azure OpenAI secret lives in the codebase
+ * or the environment. This module also hosts a small, in-memory TaskFlow
+ * dataset and a `query_tasks` tool the agent can call — the "hands" that turn a
+ * chat model into an agent.
  *
  * This file is server-only. It must never be imported into a client component.
  */
 
 import "server-only";
+import {
+  DefaultAzureCredential,
+  getBearerTokenProvider,
+} from "@azure/identity";
+
+/** Entra scope for data-plane access to Azure Cognitive Services / OpenAI. */
+const AZURE_OPENAI_SCOPE = "https://cognitiveservices.azure.com/.default";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant" | "tool";
@@ -35,7 +44,6 @@ export type AgentEvent =
 
 export interface AzureConfig {
   endpoint: string;
-  apiKey: string;
   deployment: string;
   apiVersion: string;
 }
@@ -43,13 +51,11 @@ export interface AzureConfig {
 /** Reads Azure OpenAI configuration from the environment, if fully present. */
 export function getAzureConfig(): AzureConfig | null {
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
-  const apiKey = process.env.AZURE_OPENAI_API_KEY;
   const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
   const apiVersion = process.env.AZURE_OPENAI_API_VERSION ?? "2024-10-21";
-  if (!endpoint || !apiKey || !deployment) return null;
+  if (!endpoint || !deployment) return null;
   return {
     endpoint: endpoint.replace(/\/$/, ""),
-    apiKey,
     deployment,
     apiVersion,
   };
@@ -57,6 +63,24 @@ export function getAzureConfig(): AzureConfig | null {
 
 export function azureConfigured(): boolean {
   return getAzureConfig() !== null;
+}
+
+/**
+ * Lazily-created provider that returns a cached Microsoft Entra ID bearer token
+ * for Azure OpenAI, refreshing it automatically before expiry. Using a token
+ * provider (rather than an API key) means access is governed by the app's Entra
+ * identity — e.g. a managed identity in Azure — with no secret to store.
+ */
+let bearerTokenProvider: (() => Promise<string>) | null = null;
+
+function getBearerToken(): Promise<string> {
+  if (!bearerTokenProvider) {
+    bearerTokenProvider = getBearerTokenProvider(
+      new DefaultAzureCredential(),
+      AZURE_OPENAI_SCOPE,
+    );
+  }
+  return bearerTokenProvider();
 }
 
 // ── TaskFlow dataset + tool ──────────────────────────────────────────────────
@@ -150,11 +174,12 @@ async function callAzure(
   messages: ChatMessage[],
 ): Promise<AzureResponse> {
   const url = `${cfg.endpoint}/openai/deployments/${cfg.deployment}/chat/completions?api-version=${cfg.apiVersion}`;
+  const token = await getBearerToken();
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "api-key": cfg.apiKey,
+      Authorization: "Bearer " + token,
     },
     body: JSON.stringify({
       messages,

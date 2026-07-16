@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@azure/identity": "^4.13.1",
     "@fontsource-variable/source-serif-4": "^5.2.9",
     "geist": "^1.7.2",
     "next": "^16.2.10",
