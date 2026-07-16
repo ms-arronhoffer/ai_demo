@@ -1,0 +1,11 @@
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-demos-webapp
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped

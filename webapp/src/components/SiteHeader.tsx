@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { stages } from "@/lib/stages";
+import { availableDemos, demoStartPath } from "@/lib/demos";
 
 export default function SiteHeader() {
   return (
@@ -15,25 +15,25 @@ export default function SiteHeader() {
             />
           </span>
           <span className="text-white/80 text-sm font-medium leading-tight hidden sm:block">
-            SDLC
+            Demos
             <br />
-            <span className="text-white/50 text-xs font-normal">Demo</span>
+            <span className="text-white/50 text-xs font-normal">Catalog</span>
           </span>
         </Link>
 
-        {/* Stage nav */}
-        <nav aria-label="SDLC stages" className="hidden md:block">
+        {/* Track nav */}
+        <nav aria-label="Demo tracks" className="hidden md:block">
           <ol className="flex items-center gap-1">
-            {stages.map((stage) => (
-              <li key={stage.slug}>
+            {availableDemos.map((demo) => (
+              <li key={demo.slug}>
                 <Link
-                  href={`/stages/${stage.slug}`}
+                  href={demoStartPath(demo)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <span className="text-gold/70 text-xs font-mono">
-                    {String(stage.number).padStart(2, "0")}
+                    {demo.badge.replace("Track ", "")}
                   </span>
-                  {stage.name}
+                  {demo.title}
                 </Link>
               </li>
             ))}
@@ -42,10 +42,10 @@ export default function SiteHeader() {
 
         {/* CTA */}
         <Link
-          href="/stages/plan"
+          href="/#tracks"
           className="shrink-0 text-sm px-4 py-2 rounded bg-navy-light hover:bg-navy-light/90 text-white ring-1 ring-white/10 hover:shadow-md transition-all font-medium hover:-translate-y-0.5"
         >
-          Start Demo →
+          Browse Demos →
         </Link>
       </div>
       <div aria-hidden className="h-px w-full bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
