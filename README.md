@@ -33,8 +33,78 @@ deployments, and Agents.
 | **05 · Environments** | One template, dev/test/prod promotion via parameters |
 | **06 · Pipeline & Governance** | CI/CD, approvals, and AI-specific monitoring |
 
+### Track 03 · AI Observability
+Monitoring, evaluating, and tracing AI features in production — evaluation
+harnesses, prompt tracing, token/cost tracking, and content safety.
+
+### Track 04 · RAG Explorer
+Retrieval-Augmented Generation end to end — chunk and index docs, retrieve the
+right context (drag **top-k** and watch it change in the interactive **RAG
+Explorer** widget), then compose a cited, faithful answer.
+
+### Track 05 · Agentic Playground
+The agent loop made visible and then **live**:
+
+| Stage | Focus |
+|-------|-------|
+| **01 · The Agent Loop** | Interactive **Agent Trace** visualiser — reason → act → observe, with per-step tokens/latency/cost |
+| **02 · Giving It Hands** | Tool calling: schema the model sees + how your code runs the call |
+| **03 · Steer the Model** | Interactive **Prompt Lab** — zero-shot vs constrained vs few-shot vs chain-of-thought |
+| **04 · Live Playground** | A real agent on **Azure OpenAI**, gated by **Microsoft Entra** sign-in + an approved-users allowlist |
+
+### Track 06 · MCP in Action
+The Model Context Protocol — what a server advertises (tools, resources,
+prompts), the capability handshake, and routing one agent across multiple
+servers.
+
+### Track 07 · Skills Library
+Reusable, packaged capabilities loaded on demand — skill vs. tool, progressive
+disclosure (with a token-budget diff), and running a skill end to end.
+
+### Track 08 · Multi-Agent Orchestration
+Planner → specialists → reviewer: decompose a feature request, fan out to
+specialist agents in parallel, then merge behind a review gate.
+
 New tracks are added over time — the landing page also advertises upcoming
 tracks as "coming soon" stubs.
+
+## AI & Agentic Building Blocks
+
+`/concepts` is a **layered reference map** of the components behind modern AI
+and agentic deployments — Foundations, Retrieval (RAG), Tools & Interop (MCP,
+skills), Agentic Patterns (agents, tasks, orchestration), Deployment, and
+Operations. Every concept has a plain-English definition, a concrete TaskFlow
+example, and a link to the demo that shows it in action.
+
+## Live Agent Playground (Azure + Microsoft Entra)
+
+The Agentic Playground's final stage is a **real** agent backed by Azure
+OpenAI. Because LLM usage costs money and must be governed, it is gated:
+
+- **Authentication** — Microsoft Entra ID (Azure AD) sign-in, via Auth.js.
+- **Authorization** — only individuals on the `ALLOWED_USERS` allowlist may
+  reach the model. The check is **fail-closed**: an empty allowlist approves
+  nobody, even after a valid tenant sign-in, and is enforced server-side in
+  `/api/chat` before any Azure call.
+- **Model config in the environment** — the model is chosen via
+  `AZURE_OPENAI_DEPLOYMENT`; no model or secret is hard-coded.
+
+When these variables are not set, the app still builds and runs — the live
+playground reports that it is unavailable and the deterministic (pre-recorded)
+widgets keep working.
+
+Copy `.env.example` to `.env.local` and fill in the values:
+
+```bash
+cd webapp
+cp .env.example .env.local
+# set AUTH_SECRET, the AUTH_MICROSOFT_ENTRA_ID_* app-registration values,
+# ALLOWED_USERS, and the AZURE_OPENAI_* settings
+npm run dev
+```
+
+Register this redirect URI on your Entra app registration:
+`https://<your-host>/api/auth/callback/microsoft-entra-id`.
 
 ## Tech Stack
 
@@ -42,6 +112,8 @@ tracks as "coming soon" stubs.
 - **TypeScript** — strict mode
 - **Tailwind CSS v4** — custom brand tokens (navy / gold / cream)
 - **Geist** (sans + mono) + **Source Serif 4** (headings)
+- **Auth.js (next-auth v5)** — Microsoft Entra ID sign-in for the live playground
+- **Azure OpenAI** — backend for the live, LLM-driven interactive features
 
 ## Getting Started
 
@@ -74,17 +146,32 @@ docker compose up --build
 webapp/
 ├── Dockerfile                     # Multi-stage container build
 ├── docker-compose.yml
+├── .env.example                   # Auth.js / Entra / Azure OpenAI config
 ├── src/
+│   ├── auth.ts                    # Auth.js + Microsoft Entra ID setup
 │   ├── app/
 │   │   ├── page.tsx               # Landing page (track catalog)
-│   │   └── demos/[demo]/[stage]/  # Demo-scoped stage pages
+│   │   ├── concepts/              # AI & Agentic Building Blocks overview
+│   │   ├── demos/[demo]/[stage]/  # Demo-scoped stage pages
+│   │   └── api/
+│   │       ├── auth/[...nextauth]/  # Entra sign-in routes
+│   │       └── chat/              # Entra+allowlist-gated Azure agent stream
 │   ├── components/
 │   │   ├── SiteHeader.tsx
 │   │   ├── SiteFooter.tsx
 │   │   ├── TrackCard.tsx          # Landing-page track cards
 │   │   ├── StageCard.tsx
-│   │   └── AIInteraction.tsx      # Prompt ↔ Response display
+│   │   ├── AIInteraction.tsx      # Prompt ↔ Response display
+│   │   └── widgets/               # Interactive demo widgets
+│   │       ├── AgentTrace.tsx
+│   │       ├── RagExplorer.tsx
+│   │       ├── PromptLab.tsx
+│   │       ├── LiveAgentPlayground.tsx
+│   │       └── WidgetRenderer.tsx
 │   └── lib/
+│       ├── access.ts              # Allowlist / Entra config (fail-closed)
+│       ├── azure.ts               # Azure OpenAI agent loop (server-only)
+│       ├── concepts.ts            # Building-blocks reference data
 │       └── demos/                 # Track content & registry
 │           ├── types.ts           # Shared content types
 │           ├── ai-sdlc.ts         # Track 01 content

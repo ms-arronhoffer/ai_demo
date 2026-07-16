@@ -168,6 +168,11 @@ export default async function StagePage({ params }: Props) {
             <AIInteraction
               prompt={stage.humanPrompt}
               response={stage.aiResponse}
+              layout={
+                stage.aiResponse.some((b) => b.type === "widget")
+                  ? "stacked"
+                  : "split"
+              }
             />
           </div>
         </section>

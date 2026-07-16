@@ -1,14 +1,31 @@
 import type { ContentBlock } from "@/lib/demos";
 import CopyButton from "@/components/CopyButton";
+import WidgetRenderer from "@/components/widgets/WidgetRenderer";
 
 interface AIInteractionProps {
   prompt: string;
   response: ContentBlock[];
+  /**
+   * "split" (default) shows the prompt and response side by side. "stacked"
+   * places the prompt above a full-width response — used when the response
+   * embeds a wide interactive widget that needs the full column.
+   */
+  layout?: "split" | "stacked";
 }
 
-export default function AIInteraction({ prompt, response }: AIInteractionProps) {
+export default function AIInteraction({
+  prompt,
+  response,
+  layout = "split",
+}: AIInteractionProps) {
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
+    <div
+      className={
+        layout === "stacked"
+          ? "flex flex-col gap-6"
+          : "grid lg:grid-cols-2 gap-6"
+      }
+    >
       {/* ── Human prompt ── */}
       <div className="flex flex-col">
         <div className="flex items-center justify-between gap-2 mb-3">
@@ -174,6 +191,88 @@ function ContentRenderer({ block }: { block: ContentBlock }) {
               ))}
             </tbody>
           </table>
+        </div>
+      );
+
+    case "flow":
+      return (
+        <div className="rounded-lg border border-cream-dark bg-cream/40 p-4">
+          {block.title && (
+            <p className="mb-3 text-[10px] font-mono uppercase tracking-widest text-slate-mid">
+              {block.title}
+            </p>
+          )}
+          <ol className="flex flex-wrap items-stretch gap-2">
+            {block.steps.map((step, i) => (
+              <li key={i} className="flex items-stretch gap-2">
+                <div className="flex min-w-[7rem] max-w-[11rem] flex-col rounded-lg border border-navy/15 bg-white px-3 py-2 shadow-sm">
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-navy">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-navy text-[9px] font-bold text-white">
+                      {i + 1}
+                    </span>
+                    {step.label}
+                  </span>
+                  {step.detail && (
+                    <span className="mt-1 text-[11px] leading-snug text-slate-mid">
+                      {step.detail}
+                    </span>
+                  )}
+                </div>
+                {i < block.steps.length - 1 && (
+                  <span
+                    aria-hidden
+                    className="flex items-center self-center text-navy/30"
+                  >
+                    →
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </div>
+      );
+
+    case "diff":
+      return (
+        <div className="rounded overflow-hidden border border-navy/20">
+          <div className="flex items-center gap-2 bg-navy/90 px-3 py-1.5">
+            <span className="text-xs text-white/50 font-mono">
+              {block.filename ?? "diff"}
+              {block.language ? ` · ${block.language}` : ""}
+            </span>
+          </div>
+          <pre className="bg-navy text-xs font-mono overflow-x-auto leading-relaxed">
+            <code className="block">
+              {block.lines.map((line, i) => {
+                const styles =
+                  line.kind === "add"
+                    ? "bg-green-500/15 text-green-300"
+                    : line.kind === "remove"
+                    ? "bg-red-500/15 text-red-300"
+                    : "text-white/70";
+                const sign =
+                  line.kind === "add" ? "+" : line.kind === "remove" ? "-" : " ";
+                return (
+                  <span key={i} className={`block px-4 ${styles}`}>
+                    <span className="select-none opacity-60">{sign} </span>
+                    {line.text}
+                  </span>
+                );
+              })}
+            </code>
+          </pre>
+        </div>
+      );
+
+    case "widget":
+      return (
+        <div className="not-prose">
+          {block.title && (
+            <p className="mb-2 text-[10px] font-mono uppercase tracking-widest text-gold">
+              {block.title}
+            </p>
+          )}
+          <WidgetRenderer widget={block.widget} />
         </div>
       );
 

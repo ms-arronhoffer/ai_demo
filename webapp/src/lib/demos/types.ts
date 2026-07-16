@@ -6,6 +6,13 @@
  * students can see how AI accelerates a specific phase of work.
  */
 
+/** Keys of the interactive client widgets that a stage can embed. */
+export type WidgetKey =
+  | "agent-trace"
+  | "live-agent-playground"
+  | "rag-explorer"
+  | "prompt-lab";
+
 export type ContentBlock =
   | { type: "paragraph"; text: string }
   | { type: "heading"; level: 2 | 3; text: string }
@@ -13,7 +20,22 @@ export type ContentBlock =
   | { type: "list"; items: string[] }
   | { type: "checklist"; items: Array<{ checked: boolean; text: string }> }
   | { type: "callout"; variant: "info" | "success" | "warning"; text: string }
-  | { type: "table"; headers: string[]; rows: string[][] };
+  | { type: "table"; headers: string[]; rows: string[][] }
+  /** A left-to-right pipeline / flow diagram of ordered steps. */
+  | {
+      type: "flow";
+      title?: string;
+      steps: Array<{ label: string; detail?: string }>;
+    }
+  /** A before/after code diff rendered with add/remove line styling. */
+  | {
+      type: "diff";
+      language?: string;
+      filename?: string;
+      lines: Array<{ kind: "add" | "remove" | "context"; text: string }>;
+    }
+  /** An embedded interactive client widget selected by key. */
+  | { type: "widget"; widget: WidgetKey; title?: string };
 
 export interface Stage {
   slug: string;

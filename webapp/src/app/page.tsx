@@ -57,14 +57,12 @@ export default function HomePage() {
               >
                 <span className="relative z-10">Browse the Demos →</span>
               </a>
-              {featured && (
-                <Link
-                  href={demoStartPath(featured)}
-                  className="px-6 py-3 border border-white/20 text-white/80 hover:border-gold/50 hover:text-white rounded font-medium transition-colors"
-                >
-                  Start with {featured.title}
-                </Link>
-              )}
+              <Link
+                href="/concepts"
+                className="px-6 py-3 border border-white/20 text-white/80 hover:border-gold/50 hover:text-white rounded font-medium transition-colors"
+              >
+                AI Building Blocks
+              </Link>
             </div>
           </div>
         </section>
@@ -99,12 +97,18 @@ export default function HomePage() {
               Choose a Track
             </p>
             <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-navy">
-              Two Tracks, One Journey
+              A Growing Library of Tracks
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-charcoal/70 leading-relaxed">
-              Learn how AI helps you <strong>build</strong> software, then how
-              to <strong>deploy</strong> it — including the infrastructure and
-              AI resources it depends on. New tracks are added over time.
+              Learn how AI helps you <strong>build</strong> and{" "}
+              <strong>deploy</strong> software, then go deeper into the agentic
+              stack — <strong>RAG</strong>, <strong>MCP</strong>,{" "}
+              <strong>skills</strong>, and live agents. New to the concepts?
+              Start with the{" "}
+              <Link href="/concepts" className="text-navy underline decoration-gold/50 underline-offset-2 hover:decoration-gold">
+                AI &amp; Agentic Building Blocks
+              </Link>{" "}
+              overview.
             </p>
             <div aria-hidden className="rule-gold mx-auto mt-5 w-16" />
           </header>
