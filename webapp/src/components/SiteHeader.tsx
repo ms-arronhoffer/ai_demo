@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { availableDemos, demoStartPath } from "@/lib/demos";
 
 export default function SiteHeader() {
   return (
@@ -21,22 +20,26 @@ export default function SiteHeader() {
           </span>
         </Link>
 
-        {/* Track nav */}
-        <nav aria-label="Demo tracks" className="hidden md:block">
+        {/* Primary nav */}
+        <nav aria-label="Primary" className="hidden md:block">
           <ol className="flex items-center gap-1">
-            {availableDemos.map((demo) => (
-              <li key={demo.slug}>
-                <Link
-                  href={demoStartPath(demo)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-                >
-                  <span className="text-gold/70 text-xs font-mono">
-                    {demo.badge.replace("Track ", "")}
-                  </span>
-                  {demo.title}
-                </Link>
-              </li>
-            ))}
+            <li>
+              <Link
+                href="/#tracks"
+                className="px-3 py-1.5 rounded text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                Demo Tracks
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/concepts"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <span className="text-gold/70 text-xs font-mono">AI</span>
+                Building Blocks
+              </Link>
+            </li>
           </ol>
         </nav>
 
