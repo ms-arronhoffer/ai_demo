@@ -88,10 +88,15 @@ OpenAI. Because LLM usage costs money and must be governed, it is gated:
   `/api/chat` before any Azure call.
 - **Model config in the environment** — the model is chosen via
   `AZURE_OPENAI_DEPLOYMENT`; no model or secret is hard-coded. The Azure OpenAI
-  calls themselves authenticate with **Microsoft Entra ID** (via
-  `DefaultAzureCredential`) instead of an API key, so the resource can have
-  key-based (local) auth disabled and the app's identity granted the
-  "Cognitive Services OpenAI User" role.
+  calls themselves authenticate with the app's Azure **managed identity** (via
+  Microsoft Entra ID) instead of an API key, so the resource can have key-based
+  (local) auth disabled and the managed identity granted the "Cognitive
+  Services OpenAI User" role. Use a system-assigned managed identity, or set
+  `AZURE_MANAGED_IDENTITY_CLIENT_ID` to use a user-assigned one. (No `az login`
+  is required, so this works on locked-down hosts.)
+- **Who gets in** — sign-in is Microsoft Entra ID, and only the identities you
+  list in `ALLOWED_USERS` (email/UPN or object id) are admitted; everyone else
+  is refused, even after a valid tenant sign-in.
 
 When these variables are not set, the app still builds and runs — the live
 playground reports that it is unavailable and the deterministic (pre-recorded)

@@ -4,10 +4,10 @@
  * All interactive LLM calls are served by Azure OpenAI. The model and endpoint
  * come from environment variables (see .env.example) and requests authenticate
  * with Microsoft Entra ID rather than an API key: a bearer token is acquired
- * via `DefaultAzureCredential`, so no Azure OpenAI secret lives in the codebase
- * or the environment. This module also hosts a small, in-memory TaskFlow
- * dataset and a `query_tasks` tool the agent can call — the "hands" that turn a
- * chat model into an agent.
+ * from the app's Azure **managed identity**, so no Azure OpenAI secret lives in
+ * the codebase or the environment. This module also hosts a small, in-memory
+ * TaskFlow dataset and a `query_tasks` tool the agent can call — the "hands"
+ * that turn a chat model into an agent.
  *
  * This file is server-only. It must never be imported into a client component.
  */
@@ -15,7 +15,9 @@
 import "server-only";
 import {
   DefaultAzureCredential,
+  ManagedIdentityCredential,
   getBearerTokenProvider,
+  type TokenCredential,
 } from "@azure/identity";
 
 /** Entra scope for data-plane access to Azure Cognitive Services / OpenAI. */
@@ -69,14 +71,29 @@ export function azureConfigured(): boolean {
  * Lazily-created provider that returns a cached Microsoft Entra ID bearer token
  * for Azure OpenAI, refreshing it automatically before expiry. Using a token
  * provider (rather than an API key) means access is governed by the app's Entra
- * identity — e.g. a managed identity in Azure — with no secret to store.
+ * identity — a managed identity in Azure — with no secret to store.
+ *
+ * Credential selection:
+ *   - If `AZURE_MANAGED_IDENTITY_CLIENT_ID` is set, a **user-assigned** managed
+ *     identity with that client id is used.
+ *   - Otherwise `DefaultAzureCredential` is used, which picks up the host's
+ *     **system-assigned** managed identity when running in Azure. (It does not
+ *     rely on `az login`, which is unavailable on locked-down hosts.)
  */
 let bearerTokenProvider: (() => Promise<string>) | null = null;
+
+function createCredential(): TokenCredential {
+  const clientId = process.env.AZURE_MANAGED_IDENTITY_CLIENT_ID;
+  if (clientId) {
+    return new ManagedIdentityCredential({ clientId });
+  }
+  return new DefaultAzureCredential();
+}
 
 function getBearerToken(): Promise<string> {
   if (!bearerTokenProvider) {
     bearerTokenProvider = getBearerTokenProvider(
-      new DefaultAzureCredential(),
+      createCredential(),
       AZURE_OPENAI_SCOPE,
     );
   }
