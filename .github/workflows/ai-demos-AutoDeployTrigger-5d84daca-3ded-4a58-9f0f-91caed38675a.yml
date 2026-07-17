@@ -44,7 +44,7 @@ jobs:
           az acr build -r "$ACR_NAME" \
             -t ai-demos:${{ env.IMAGE_TAG }} \
             -t ai-demos:latest \
-            -f Dockerfile webapp
+            -f webapp/Dockerfile webapp
 
       - name: Update container app revision
         env:
